@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Box, Card, CardMedia, CardContent, Typography, Button, Grid } from "@mui/material";
-import axios from "axios";
+import { Card, CardActions, CardContent, CardMedia, Button, Typography, Grid } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Home = () => {
   const [blogs, setBlogs] = useState([]);
   const navigate = useNavigate();
 
-  // Fetch all blogs from backend
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/blogs"); // Make sure backend route exists
+      const res = await axios.get("http://localhost:3001/get"); // Update backend URL if needed
       setBlogs(res.data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      alert("Failed to fetch blogs");
     }
   };
 
@@ -21,60 +21,55 @@ const Home = () => {
     fetchBlogs();
   }, []);
 
-  // Delete a blog
   const deleteBlog = async (id) => {
     try {
-      await axios.delete(`http://localhost:3001/blog/${id}`);
-      fetchBlogs(); // refresh list
+      await axios.delete(`http://localhost:3001/delete/${id}`);
+      alert("Blog deleted successfully");
+      fetchBlogs();
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      alert("Failed to delete blog");
     }
   };
 
-  // Navigate to update page
-  const updateBlog = (id) => {
-    navigate(`/update/${id}`);
+  const updateBlog = (item) => {
+    navigate("/add", { state: item }); // Pass blog data to Add.jsx for editing
   };
 
   return (
-    <Box sx={{ padding: "2rem" }}>
+    <div style={{ padding: "30px" }}>
       <Grid container spacing={3}>
-        {blogs.map((blog) => (
-          <Grid item xs={12} sm={6} md={4} key={blog._id}>
+        {blogs.map((item) => (
+          <Grid item xs={12} sm={6} md={4} key={item._id}>
             <Card>
               <CardMedia
                 component="img"
-                height="200"
-                image={blog.img_url}
-                alt={blog.title}
+                height="180"
+                image={item.img_url || "https://via.placeholder.com/300"} // placeholder if no image
+                alt={item.title}
               />
               <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {blog.category || "General"}
+                <Typography variant="caption" color="text.secondary">
+                  
                 </Typography>
-                <Typography variant="h6">{blog.title}</Typography>
+                <Typography variant="h6">{item.title}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {item.content}
+                </Typography>
               </CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-around", paddingBottom: 2 }}>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => deleteBlog(blog._id)}
-                >
-                  Delete
+              <CardActions>
+                <Button variant="contained" color="secondary" onClick={() => deleteBlog(item._id)}>
+                  DELETE
                 </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => updateBlog(blog._id)}
-                >
-                  Update
+                <Button variant="contained" color="secondary" onClick={() => updateBlog(item)}>
+                  UPDATE
                 </Button>
-              </Box>
+              </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
-    </Box>
+    </div>
   );
 };
 
